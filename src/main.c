@@ -11,18 +11,18 @@ typedef struct {
     double right_border;
 } interval_t;
 
-double rectangle_rule(interval_t interval);
-double simpson_rule(interval_t interval);
+double calculate_rectangle_rule(interval_t interval);
+double calculate_simpson_rule(interval_t interval);
 double integrate(interval_t interval, int part_count, double (*rule)(interval_t));
-char **calculate_integrals(interval_t interval, const int *nums, int n);
+char **calculate_integrals(interval_t interval, const int *nums, int experiment_count);
 
 void read_interval(FILE *stream, interval_t *interval);
 void free_memory(char **results, int n);
 
 int main() {
-    interval_t interval = {0, 0};
+    interval_t interval;
     read_interval(stdin, &interval);
-    int nums[] = {5, 10,  20,  100,  500,  1000};
+    int nums[] = {6, 10,  20,  100,  500,  1000};
     int size = sizeof(nums) / sizeof(nums[0]);
     char **st = calculate_integrals(interval, nums, size);
     for (int i = 0; i < size; ++i) {
@@ -34,11 +34,11 @@ int main() {
     return 0;
 }
 
-double rectangle_rule(interval_t interval) {
+double calculate_rectangle_rule(interval_t interval) {
     return (interval.right_border - interval.left_border) * sin((interval.left_border + interval.right_border) / 2);
 }
 
-double simpson_rule(interval_t interval) {
+double calculate_simpson_rule(interval_t interval) {
     double first_part = ((interval.right_border - interval.left_border) / 6.0);
     double second_part = (sin(interval.left_border) + (4 * sin((interval.left_border + interval.right_border) / 2)) + sin(interval.right_border));
     return first_part * second_part;
@@ -57,12 +57,12 @@ double integrate(interval_t interval, int part_count, double (*rule)(interval_t)
     return integrate_value;
 }
 
-char **calculate_integrals(interval_t interval, const int *nums, int n) {
-    char **res = (char**)malloc(n * sizeof(char *));
+char **calculate_integrals(interval_t interval, const int *nums, int experiment_count) {
+    char **res = (char**)malloc(experiment_count * sizeof(char *));
     if (res == NULL) {
         return NULL;
     }
-    for (int i = 0; i < n; ++i) {
+    for (int i = 0; i < experiment_count; ++i) {
         res[i] = (char*)malloc(sizeof(char) * MAX_RESULT_STRING_LENGTH);
         if (res[i] == NULL) {
             free_memory(res, i);
@@ -70,9 +70,9 @@ char **calculate_integrals(interval_t interval, const int *nums, int n) {
             return NULL;
         }
     }
-    for (int i = 0; i < n; ++i) {
-        double integral_rectangle = integrate(interval, nums[i], rectangle_rule);
-        double integral_simpson = integrate(interval, nums[i], simpson_rule);
+    for (int i = 0; i < experiment_count; ++i) {
+        double integral_rectangle = integrate(interval, nums[i], calculate_rectangle_rule);
+        double integral_simpson = integrate(interval, nums[i], calculate_simpson_rule);
         sprintf(res[i], "%d\t%.5f\t%.5f\n", nums[i], integral_rectangle, integral_simpson);
     }
     return res;
